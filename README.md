@@ -1,50 +1,78 @@
-# Welcome to your Expo app 👋
+# ನಮ್ಮ ಕನ್ನಡ (Namma Kannada)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native + Expo app for learning Kannada, inspired by Duolingo's lesson path approach.
 
-## Get started
+## Features
 
-1. Install dependencies
+- 🔐 **Authentication**: Email/Password and Google Sign-In via Firebase Auth
+- 📚 **Lesson Path**: Duolingo-style progressive learning path with locked/unlocked lessons
+- 🎯 **Interactive Lessons**: Multiple question types (multiple choice, fill-in-the-blank, etc.)
+- 📊 **Progress Tracking**: XP system, streaks, stars, and lesson completion tracking
+- 🔥 **Gamification**: Earn XP, maintain streaks, and unlock new lessons
+- 💾 **Cloud Storage**: All lessons and user data stored in Firestore
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **React Native** with **Expo** (SDK 54)
+- **TypeScript** for type safety
+- **Firebase** (Authentication + Firestore)
+- **Expo Router** for navigation
+- **AsyncStorage** for local persistence
 
-   ```bash
-   npx expo start
-   ```
+## Setup Instructions
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install Dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Firebase Setup
 
-## Learn more
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable **Authentication** (Email/Password and Google Sign-In)
+4. Create a **Firestore Database**
+5. Get your Firebase config and update `config/firebase.ts`
 
-To learn more about developing your project with Expo, look at the following resources:
+**For Google Sign-In:** See `GOOGLE_SIGNIN_SETUP.md` for detailed OAuth configuration.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+See `FIRESTORE_STRUCTURE.md` for detailed database schema and sample data.
 
-## Join the community
+### 3. Run the App
 
-Join our community of developers creating universal apps.
+```bash
+# Start the development server
+npm start
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Run on specific platforms
+npm run ios
+npm run android
+npm run web
+```
+
+## Project Structure
+
+```
+app/
+├── (auth)/         # Login, signup, forgot password
+├── (tabs)/         # Main app (learn, profile)
+├── lesson/[id].tsx # Lesson viewer
+config/             # Firebase configuration
+contexts/           # Auth context
+services/           # Firestore services
+types/              # TypeScript types
+```
+
+## Next Steps
+
+1. **Configure Firebase**: Update `config/firebase.ts` with your Firebase project credentials
+2. **Add Lesson Content**: Create units and lessons in Firestore (see `FIRESTORE_STRUCTURE.md`)
+3. **Customize**: Update colors, branding, and content to match your vision
+4. **Test**: Run the app and test authentication and lesson flow
+
+For detailed setup instructions, database schema, and sample data, see `FIRESTORE_STRUCTURE.md`.
+
+## License
+
+MIT License

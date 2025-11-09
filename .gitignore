@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Google service account key
+asdev-nammakannada-3f9fdec99ccd.json
