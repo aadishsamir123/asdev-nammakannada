@@ -3,14 +3,16 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
-    ActivityIndicator,
-    Card,
-    Chip,
-    Surface,
-    Text,
-    useTheme,
+  ActivityIndicator,
+  Card,
+  Chip,
+  Surface,
+  Text,
+  useTheme,
 } from 'react-native-paper';
+import StatsRightPanel from '../../components/StatsRightPanel';
 import { useAuth } from '../../contexts/AuthContext';
+import { useResponsive } from '../../hooks/useResponsive';
 import { getAllUnits, getUserProgress } from '../../services/firestore';
 import { Lesson, Unit, UserProgress } from '../../types';
 
@@ -21,6 +23,7 @@ export default function LearnScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const theme = useTheme();
+  const { isDesktop, isTablet } = useResponsive();
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -103,6 +106,132 @@ export default function LearnScreen() {
     );
   }
 
+  // Desktop layout with stats panel on the side
+  if (isDesktop) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.desktopLayout}>
+          <View style={styles.mainContent}>
+            <Surface style={[styles.headerCompact, { backgroundColor: theme.colors.primaryContainer }]} elevation={0}>
+              <Text variant="headlineLarge" style={[styles.headerTitle, { color: theme.colors.onPrimaryContainer }]}>
+                Learning Path
+              </Text>
+              <Text variant="bodyLarge" style={[styles.headerSubtitle, { color: theme.colors.onPrimaryContainer }]}>
+                Master Kannada with interactive lessons
+              </Text>
+            </Surface>
+
+            <ScrollView style={styles.content} contentContainerStyle={styles.scrollContentDesktop}>
+              {units.map((unit) => (
+                <View key={unit.id} style={styles.unitContainer}>
+                  <Card style={styles.unitCard} mode="elevated">
+                    <Card.Title
+                      title={unit.title}
+                      subtitle={unit.description}
+                      titleVariant="headlineSmall"
+                      titleStyle={{ fontWeight: 'bold' }}
+                      left={(props) => (
+                        <View
+                          style={[
+                            styles.unitIconContainer,
+                            { backgroundColor: `${unit.color}20` },
+                          ]}
+                        >
+                          <MaterialCommunityIcons name="book-open-page-variant" size={32} color={unit.color} />
+                        </View>
+                      )}
+                    />
+                    <Card.Content>
+                      <View style={styles.lessonsGridDesktop}>
+                        {unit.lessons.map((lesson) => {
+                          const status = getLessonStatus(lesson);
+                          const stars = userProgress?.lessonProgress[lesson.id]?.stars || 0;
+                          const isDisabled = status === 'locked';
+
+                          return (
+                            <Card
+                              key={lesson.id}
+                              style={[
+                                styles.lessonCardDesktop,
+                                { backgroundColor: getLessonColor(status) },
+                              ]}
+                              mode="contained"
+                              onPress={() => {
+                                if (!isDisabled) {
+                                  router.push(`/lesson/${lesson.id}` as any);
+                                }
+                              }}
+                              disabled={isDisabled}
+                            >
+                              <Card.Content style={styles.lessonContent}>
+                                <MaterialCommunityIcons
+                                  name={getLessonIcon(status)}
+                                  size={40}
+                                  color={
+                                    status === 'locked'
+                                      ? theme.colors.onSurfaceVariant
+                                      : status === 'completed'
+                                      ? theme.colors.onTertiary
+                                      : theme.colors.onPrimaryContainer
+                                  }
+                                />
+                                <Text
+                                  variant="titleMedium"
+                                  style={[
+                                    styles.lessonTitle,
+                                    {
+                                      color:
+                                        status === 'locked'
+                                          ? theme.colors.onSurfaceVariant
+                                          : status === 'completed'
+                                          ? theme.colors.onTertiary
+                                          : theme.colors.onPrimaryContainer,
+                                    },
+                                  ]}
+                                  numberOfLines={2}
+                                >
+                                  {lesson.title}
+                                </Text>
+                                {status === 'completed' && stars > 0 && (
+                                  <View style={styles.starsContainer}>
+                                    {[...Array(3)].map((_, i) => (
+                                      <MaterialCommunityIcons
+                                        key={i}
+                                        name={i < stars ? 'star' : 'star-outline'}
+                                        size={20}
+                                        color="#FFD700"
+                                      />
+                                    ))}
+                                  </View>
+                                )}
+                                {!isDisabled && status !== 'completed' && (
+                                  <Chip
+                                    mode="flat"
+                                    compact
+                                    style={styles.xpChip}
+                                    textStyle={{ fontSize: 12 }}
+                                  >
+                                    +{lesson.xpReward} XP
+                                  </Chip>
+                                )}
+                              </Card.Content>
+                            </Card>
+                          );
+                        })}
+                      </View>
+                    </Card.Content>
+                  </Card>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+          <StatsRightPanel userProgress={userProgress} units={units} />
+        </View>
+      </View>
+    );
+  }
+
+  // Tablet and mobile layout
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Surface style={[styles.header, { backgroundColor: theme.colors.primaryContainer }]} elevation={0}>
@@ -133,7 +262,7 @@ export default function LearnScreen() {
         )}
       </Surface>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.content} contentContainerStyle={isTablet ? styles.scrollContentTablet : styles.scrollContent}>
         {units.map((unit) => (
           <View key={unit.id} style={styles.unitContainer}>
             <Card style={styles.unitCard} mode="elevated">
@@ -249,6 +378,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  desktopLayout: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  mainContent: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
@@ -256,9 +392,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  headerCompact: {
+    paddingHorizontal: 40,
+    paddingTop: 40,
+    paddingBottom: 32,
+  },
   headerTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  headerSubtitle: {
+    opacity: 0.9,
   },
   stats: {
     flexDirection: 'row',
@@ -283,6 +427,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
   },
+  scrollContentTablet: {
+    padding: 24,
+  },
+  scrollContentDesktop: {
+    padding: 40,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
   unitContainer: {
     marginBottom: 16,
   },
@@ -302,10 +455,22 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 8,
   },
+  lessonsGridDesktop: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 12,
+  },
   lessonCard: {
     width: '48%',
     minHeight: 140,
     borderRadius: 12,
+  },
+  lessonCardDesktop: {
+    width: '31%', // 3 columns on desktop with gaps
+    minWidth: 200,
+    minHeight: 180,
+    borderRadius: 16,
   },
   lessonContent: {
     alignItems: 'center',

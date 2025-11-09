@@ -2,18 +2,19 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import {
-    ActivityIndicator,
-    Avatar,
-    Button,
-    Divider,
-    List,
-    Menu,
-    Surface,
-    Text,
-    useTheme as usePaperTheme,
+  ActivityIndicator,
+  Avatar,
+  Button,
+  Divider,
+  List,
+  Menu,
+  Surface,
+  Text,
+  useTheme as usePaperTheme,
 } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useResponsive } from '../../hooks/useResponsive';
 import { seedTestData } from '../../services/seedData';
 
 export default function ProfileScreen() {
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const { themeMode, setThemeMode } = useTheme();
   const [isSeeding, setIsSeeding] = useState(false);
   const [themeMenuVisible, setThemeMenuVisible] = useState(false);
+  const { isDesktop, isTablet } = useResponsive();
 
   const handleLogout = async () => {
     await logout();
@@ -69,15 +71,26 @@ export default function ProfileScreen() {
     }
   };
 
-  return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Surface style={styles.header} elevation={0}>
-        <Text variant="headlineMedium" style={styles.headerTitle}>
-          Profile
-        </Text>
-      </Surface>
+  const isLargeScreen = isDesktop || isTablet;
 
-      <Surface style={styles.profileCard} elevation={1}>
+  return (
+    <ScrollView 
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={isLargeScreen ? styles.largeScreenContent : undefined}
+    >
+      <View style={isLargeScreen ? styles.largeScreenContainer : undefined}>
+        <Surface style={isLargeScreen ? styles.headerCompact : styles.header} elevation={0}>
+          <Text variant={isDesktop ? "headlineLarge" : "headlineMedium"} style={styles.headerTitle}>
+            Profile
+          </Text>
+          {isLargeScreen && (
+            <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
+              Manage your account settings and preferences
+            </Text>
+          )}
+        </Surface>
+
+        <Surface style={isLargeScreen ? styles.profileCardLarge : styles.profileCard} elevation={1}>
         <View style={styles.avatarContainer}>
           {user?.photoURL ? (
             <Avatar.Image size={80} source={{ uri: user.photoURL }} />
@@ -98,10 +111,10 @@ export default function ProfileScreen() {
         </Text>
       </Surface>
 
-      <Surface style={styles.section} elevation={0}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-          Appearance
-        </Text>
+        <Surface style={[styles.section, isLargeScreen && { marginHorizontal: 0 }]} elevation={0}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+            Appearance
+          </Text>
 
         <Menu
           visible={themeMenuVisible}
@@ -141,13 +154,13 @@ export default function ProfileScreen() {
             leadingIcon={themeMode === 'auto' ? 'check' : undefined}
           />
         </Menu>
-        <Divider />
-      </Surface>
+          <Divider />
+        </Surface>
 
-      <Surface style={styles.section} elevation={0}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-          Account
-        </Text>
+        <Surface style={[styles.section, isLargeScreen && { marginHorizontal: 0 }]} elevation={0}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+            Account
+          </Text>
 
         <List.Item
           title="Edit Profile"
@@ -171,13 +184,13 @@ export default function ProfileScreen() {
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => {}}
         />
-        <Divider />
-      </Surface>
+          <Divider />
+        </Surface>
 
-      <Surface style={styles.section} elevation={0}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-          About
-        </Text>
+        <Surface style={[styles.section, isLargeScreen && { marginHorizontal: 0 }]} elevation={0}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+            About
+          </Text>
 
         <List.Item
           title="Privacy Policy"
@@ -201,14 +214,14 @@ export default function ProfileScreen() {
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => {}}
         />
-        <Divider />
-      </Surface>
+          <Divider />
+        </Surface>
 
-      {user?.admin && (
-        <Surface style={styles.section} elevation={0}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
-            Admin
-          </Text>
+        {user?.admin && (
+          <Surface style={[styles.section, isLargeScreen && { marginHorizontal: 0 }]} elevation={0}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+              Admin
+            </Text>
 
           <List.Item
             title="Lesson Manager"
@@ -225,13 +238,13 @@ export default function ProfileScreen() {
             left={(props) => <List.Icon {...props} icon="hammer-wrench" />}
             right={() => isSeeding ? <ActivityIndicator size="small" /> : <List.Icon icon="chevron-right" />}
             onPress={handleSeedData}
-            disabled={isSeeding}
-          />
-          <Divider />
-        </Surface>
-      )}
+              disabled={isSeeding}
+            />
+            <Divider />
+          </Surface>
+        )}
 
-      <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, isLargeScreen && { paddingHorizontal: 0 }]}>
         <Button
           mode="contained"
           onPress={handleLogout}
@@ -239,17 +252,18 @@ export default function ProfileScreen() {
           buttonColor={theme.colors.error}
           textColor={theme.colors.onError}
           icon="logout"
-        >
-          Logout
-        </Button>
-      </View>
+          >
+            Logout
+          </Button>
+        </View>
 
-      <Text
-        variant="bodySmall"
-        style={[styles.version, { color: theme.colors.onSurfaceVariant }]}
-      >
-        Version 1.0.0
-      </Text>
+        <Text
+          variant="bodySmall"
+          style={[styles.version, { color: theme.colors.onSurfaceVariant }]}
+        >
+          Version 1.2.0
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -258,10 +272,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  largeScreenContent: {
+    padding: 40,
+    maxWidth: 1000,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  largeScreenContainer: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
+  },
+  headerCompact: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 24,
   },
   headerTitle: {
     fontWeight: 'bold',
@@ -272,6 +300,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 16,
+  },
+  profileCardLarge: {
+    padding: 32,
+    alignItems: 'center',
+    marginHorizontal: 0,
+    marginVertical: 16,
+    borderRadius: 20,
   },
   avatarContainer: {
     marginBottom: 16,

@@ -1,21 +1,21 @@
 import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    orderBy,
-    query,
-    setDoc,
-    updateDoc,
-    where,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import {
-    Lesson,
-    LessonProgress,
-    LessonResult,
-    Unit,
-    UserProgress,
+  Lesson,
+  LessonProgress,
+  LessonResult,
+  Unit,
+  UserProgress,
 } from '../types';
 
 // Lesson Services
